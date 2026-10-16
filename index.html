@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Milericons</title>
+    <link rel="icon" type="image/svg+xml" href="./public/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./public/index.css" />
+    <script>
+      try {
+        var theme = localStorage.getItem('milericons-theme') || 'system';
+        var dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
+    <script src="./public/miller-icons.js" defer></script>
+    <script src="./public/index.js" defer></script>
+  </head>
+  <body>
+    <div class="dock">
+      <div class="dock__search" hidden>
+        <span class="dock__key">ctrl + k</span>
+        <input type="search" class="dock__search-input" placeholder="Buscar iconos" autocomplete="off" spellcheck="false" />
+        <button type="button" class="dock__key">esc</button>
+      </div>
+      <div class="dock__info" hidden>
+        <div class="dock__info-head">
+          <span class="miller-icon dock__info-icon" data-icon="star"></span>
+          <span class="dock__info-name"></span>
+          <button type="button" class="dock__key" data-info-close>esc</button>
+        </div>
+        <div class="dock__info-tabs" role="tablist">
+          <button type="button" class="dock__info-tab is-active" data-info-tab="html">html</button>
+          <button type="button" class="dock__info-tab" data-info-tab="svg">svg</button>
+          <button type="button" class="dock__info-tab" data-info-tab="png">png</button>
+          <button type="button" class="dock__info-tab" data-info-tab="anim" hidden>animado</button>
+        </div>
+        <div class="dock__info-pane" data-info-pane="html">
+          <div class="dock__info-code">
+            <code class="dock__info-snippet" data-info-html></code>
+            <button type="button" class="dock__copy" data-copy-info="html">copiar</button>
+          </div>
+        </div>
+        <div class="dock__info-pane" data-info-pane="svg" hidden>
+          <div class="dock__info-code dock__info-code--block">
+            <code class="dock__info-snippet" data-info-svg></code>
+          </div>
+          <button type="button" class="dock__copy dock__copy--primary" data-copy-info="svg">copiar</button>
+        </div>
+        <div class="dock__info-pane" data-info-pane="png" hidden>
+          <div class="dock__info-png">
+            <div class="dock__size-wrap">
+              <button type="button" class="dock__size-toggle" data-size-toggle>
+                <span data-size-label>256 px</span>
+                <span class="miller-icon" data-icon="arrow_down_s"></span>
+              </button>
+              <div class="dock__size-menu" hidden>
+                <button type="button" data-size-option="64">64 px</button>
+                <button type="button" data-size-option="128">128 px</button>
+                <button type="button" class="is-active" data-size-option="256">256 px</button>
+                <button type="button" data-size-option="512">512 px</button>
+              </div>
+            </div>
+            <button type="button" class="dock__copy dock__copy--primary" data-info-download>Descargar PNG</button>
+          </div>
+          <p class="dock__info-note">el png se exporta en negro sobre fondo transparente</p>
+        </div>
+        <div class="dock__info-pane" data-info-pane="anim" hidden>
+          <div class="dock__info-code">
+            <code class="dock__info-snippet" data-info-anim></code>
+            <button type="button" class="dock__copy" data-copy-info="anim">copiar</button>
+          </div>
+        </div>
+      </div>
+      <div class="dock__bar">
+        <div class="dock__code">
+          <code class="dock__snippet"><span class="tok-tag">&lt;script</span> <span class="tok-attr">src</span>=<span class="tok-str">"https://milericons.github.io/resources.github.io/public/miller-icons.js"</span> <span class="tok-attr">defer</span>&gt;<span class="tok-tag">&lt;/script&gt;</span></code>
+          <button type="button" class="dock__copy">copiar</button>
+        </div>
+        <span class="dock__divider"></span>
+        <span class="miller-icon" data-icon="star"></span>
+        <span class="miller-icon" data-icon="search" data-search-toggle></span>
+        <div class="dock__theme-wrap">
+          <span class="miller-icon" data-icon="computer" data-theme-toggle title="Tema"></span>
+          <div class="dock__theme" hidden>
+            <button type="button" data-theme-option="light">
+              <span class="miller-icon" data-icon="sun"></span>
+              light
+            </button>
+            <button type="button" data-theme-option="dark">
+              <span class="miller-icon" data-icon="moon"></span>
+              dark
+            </button>
+            <button type="button" data-theme-option="system">
+              <span class="miller-icon" data-icon="computer"></span>
+              sistema
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
