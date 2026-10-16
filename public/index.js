@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const favoriteButton = document.createElement('button');
     favoriteButton.type = 'button';
     favoriteButton.className = 'icon-cell__favorite';
-    favoriteButton.innerHTML = '<span class="miller-icon" data-icon="star"></span>';
+    favoriteButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"></path></svg>';
     cell.append(icon, label, favoriteButton);
     updateFavoriteButton(cell, favorites.has(name));
     return cell;
