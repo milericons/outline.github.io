@@ -129,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.dispatchEvent(new Event('input', { bubbles: true }));
     searchInput.focus();
   });
-  searchPanel.querySelector('.dock__key:last-child').addEventListener('click', closeSearch);
 
   const infoPanel = document.querySelector('.dock__info');
   const infoName = document.querySelector('.dock__info-name');
