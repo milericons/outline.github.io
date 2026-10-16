@@ -79,7 +79,9 @@
           <button type="button" class="dock__copy">copiar</button>
         </div>
         <span class="dock__divider"></span>
-        <span class="miller-icon" data-icon="star"></span>
+        <button type="button" class="dock__favorite-toggle" data-favorites-toggle aria-label="Abrir favoritos" title="Favoritos">
+          <span class="miller-icon" data-icon="star"></span>
+        </button>
         <span class="miller-icon" data-icon="search" data-search-toggle></span>
         <div class="dock__theme-wrap">
           <span class="miller-icon" data-icon="computer" data-theme-toggle title="Tema"></span>
@@ -99,6 +101,24 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="favorites-modal" data-favorites-modal hidden>
+      <section class="favorites-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="favorites-title">
+        <header class="favorites-modal__header">
+          <div>
+            <p class="favorites-modal__eyebrow">TU COLECCIÓN</p>
+            <h2 class="favorites-modal__title" id="favorites-title">Favoritos</h2>
+            <p class="favorites-modal__description" data-favorites-count></p>
+          </div>
+          <button type="button" class="favorites-modal__close" data-favorites-close aria-label="Cerrar favoritos">×</button>
+        </header>
+        <div class="favorites-modal__grid" data-favorites-grid></div>
+        <div class="favorites-modal__empty" data-favorites-empty hidden>
+          <span class="miller-icon" data-icon="star"></span>
+          <p>Aún no tienes favoritos</p>
+          <span>Usa la estrella de una tarjeta para guardar tus iconos aquí.</span>
+        </div>
+      </section>
     </div>
   </body>
 </html>

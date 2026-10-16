@@ -1,8 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const fragment = document.createDocumentFragment();
-  MillerIcons.names.forEach((name) => {
+  const FAVORITES_KEY = 'milericons-favorites';
+  const availableIcons = new Set(MillerIcons.names);
+  let favorites = new Set();
+  try {
+    const storedFavorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    if (Array.isArray(storedFavorites)) {
+      favorites = new Set(storedFavorites.filter((name) => availableIcons.has(name)));
+    }
+  } catch (error) {
+    console.error('No se pudieron cargar los favoritos:', error);
+  }
+
+  function updateFavoriteButton(cell, isFavorite) {
+    const button = cell.querySelector('.icon-cell__favorite');
+    const label = isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos';
+    cell.classList.toggle('is-favorite', isFavorite);
+    button.setAttribute('aria-label', `${label}: ${cell.dataset.name.replaceAll('_', ' ')}`);
+    button.setAttribute('aria-pressed', String(isFavorite));
+    button.title = label;
+  }
+
+  function createIconCell(name, extraClass = '') {
     const cell = document.createElement('div');
-    cell.className = 'icon-cell';
+    cell.className = `icon-cell${extraClass ? ` ${extraClass}` : ''}`;
     cell.dataset.name = name;
 
     const icon = document.createElement('span');
@@ -13,8 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
     label.className = 'icon-cell__name';
     label.textContent = name.replaceAll('_', ' ');
 
-    cell.append(icon, label);
-    fragment.append(cell);
+    const favoriteButton = document.createElement('button');
+    favoriteButton.type = 'button';
+    favoriteButton.className = 'icon-cell__favorite';
+    favoriteButton.innerHTML = '<span class="miller-icon" data-icon="star"></span>';
+    cell.append(icon, label, favoriteButton);
+    updateFavoriteButton(cell, favorites.has(name));
+    return cell;
+  }
+
+  const fragment = document.createDocumentFragment();
+  MillerIcons.names.forEach((name) => {
+    fragment.append(createIconCell(name));
   });
   document.body.append(fragment);
 
@@ -33,6 +63,111 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.querySelector('.dock__search-input');
   const searchClear = document.querySelector('.dock__search-clear');
   const iconCells = document.querySelectorAll('.icon-cell');
+  const favoriteToggle = document.querySelector('[data-favorites-toggle]');
+  const favoritesModal = document.querySelector('[data-favorites-modal]');
+  const favoritesGrid = document.querySelector('[data-favorites-grid]');
+  const favoritesCount = document.querySelector('[data-favorites-count]');
+  const favoritesEmpty = document.querySelector('[data-favorites-empty]');
+  const favoritesClose = document.querySelector('[data-favorites-close]');
+
+  function renderFavorites() {
+    const names = MillerIcons.names.filter((name) => favorites.has(name));
+    favoritesCount.textContent = `${names.length} ${names.length === 1 ? 'icono guardado' : 'iconos guardados'}`;
+    favoritesEmpty.hidden = names.length > 0;
+    favoritesGrid.hidden = names.length === 0;
+    favoritesGrid.replaceChildren();
+    names.forEach((name) => {
+      const cell = createIconCell(name, 'favorites-modal__item');
+      bindIconCell(cell, () => {
+        closeFavorites();
+        openInfo(name);
+      });
+      favoritesGrid.append(cell);
+    });
+    MillerIcons.scan(favoritesGrid);
+  }
+
+  function saveFavorites() {
+    try {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
+    } catch (error) {
+      console.error('No se pudieron guardar los favoritos:', error);
+    }
+  }
+
+  function toggleFavorite(name) {
+    if (favorites.has(name)) favorites.delete(name);
+    else favorites.add(name);
+    saveFavorites();
+    document.querySelectorAll('.icon-cell').forEach((cell) => {
+      if (cell.dataset.name !== name) return;
+      updateFavoriteButton(cell, favorites.has(name));
+    });
+    if (!favoritesModal.hidden) {
+      renderFavorites();
+      favoritesClose.focus();
+    }
+  }
+
+  function openFavorites() {
+    renderFavorites();
+    favoritesModal.hidden = false;
+    document.body.classList.add('has-modal');
+    favoritesClose.focus();
+  }
+
+  function closeFavorites() {
+    favoritesModal.hidden = true;
+    document.body.classList.remove('has-modal');
+    favoriteToggle.focus();
+  }
+
+  function bindIconCell(cell, onSelect) {
+    cell.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (onSelect) {
+        onSelect();
+        return;
+      }
+      const name = cell.dataset.name;
+      if (!infoPanel.hidden && cell.classList.contains('is-selected')) closeInfo();
+      else openInfo(name);
+    });
+    cell.querySelector('.icon-cell__favorite').addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleFavorite(cell.dataset.name);
+    });
+  }
+
+  iconCells.forEach((cell) => bindIconCell(cell));
+  favoriteToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    openFavorites();
+  });
+  favoritesClose.addEventListener('click', (event) => {
+    event.stopPropagation();
+    closeFavorites();
+  });
+  favoritesModal.addEventListener('click', (event) => {
+    if (event.target === favoritesModal) {
+      event.stopPropagation();
+      closeFavorites();
+    }
+  });
+  favoritesModal.querySelector('.favorites-modal__dialog').addEventListener('click', (event) => event.stopPropagation());
+  favoritesModal.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const focusable = [...favoritesModal.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 
   const THEME_KEY = 'milericons-theme';
   const root = document.documentElement;
@@ -271,15 +406,6 @@ document.addEventListener('DOMContentLoaded', () => {
     iconCells.forEach((cell) => cell.classList.remove('is-selected'));
   }
 
-  iconCells.forEach((cell) => {
-    cell.addEventListener('click', (event) => {
-      event.stopPropagation();
-      const name = cell.dataset.name;
-      if (!infoPanel.hidden && cell.classList.contains('is-selected')) closeInfo();
-      else openInfo(name);
-    });
-  });
-
   infoPanel.addEventListener('click', (event) => event.stopPropagation());
   document.querySelector('[data-info-close]').addEventListener('click', closeInfo);
   infoTabs.forEach((button) => {
@@ -354,6 +480,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     if (event.key === 'Escape') {
+      if (!favoritesModal.hidden) {
+        closeFavorites();
+        return;
+      }
       closeSearch();
       closeTheme();
       closeInfo();
