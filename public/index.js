@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchToggle = document.querySelector('[data-search-toggle]');
   const searchPanel = document.querySelector('.dock__search');
   const searchInput = document.querySelector('.dock__search-input');
+  const searchClear = document.querySelector('.dock__search-clear');
   const iconCells = document.querySelectorAll('.icon-cell');
 
   const THEME_KEY = 'milericons-theme';
@@ -108,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeSearch() {
     searchPanel.hidden = true;
     searchInput.value = '';
+    searchClear.hidden = true;
     filterGrid('');
   }
 
@@ -118,7 +120,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   searchPanel.addEventListener('click', (event) => event.stopPropagation());
-  searchInput.addEventListener('input', () => filterGrid(searchInput.value));
+  searchInput.addEventListener('input', () => {
+    filterGrid(searchInput.value);
+    searchClear.hidden = searchInput.value.length === 0;
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    searchInput.focus();
+  });
   searchPanel.querySelector('.dock__key:last-child').addEventListener('click', closeSearch);
 
   const infoPanel = document.querySelector('.dock__info');
@@ -317,6 +327,13 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('No se pudo exportar el png:', error);
     }
   });
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!target.closest('.dock__theme-wrap')) closeTheme();
+    if (!target.closest('.dock__size-wrap')) sizeMenu.hidden = true;
+  }, true);
 
   document.addEventListener('click', () => {
     closeSearch();

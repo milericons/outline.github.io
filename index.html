@@ -21,7 +21,8 @@
     <div class="dock">
       <div class="dock__search" hidden>
         <span class="dock__key">ctrl + k</span>
-        <input type="search" class="dock__search-input" placeholder="Buscar iconos" autocomplete="off" spellcheck="false" />
+        <input type="text" class="dock__search-input" placeholder="Buscar iconos" autocomplete="off" spellcheck="false" />
+        <button type="button" class="dock__search-clear" aria-label="Limpiar búsqueda" title="Limpiar búsqueda" hidden>×</button>
         <button type="button" class="dock__key">esc</button>
       </div>
       <div class="dock__info" hidden>
@@ -45,8 +46,8 @@
         <div class="dock__info-pane" data-info-pane="svg" hidden>
           <div class="dock__info-code dock__info-code--block">
             <code class="dock__info-snippet" data-info-svg></code>
+            <button type="button" class="dock__copy dock__copy--primary" data-copy-info="svg">copiar</button>
           </div>
-          <button type="button" class="dock__copy dock__copy--primary" data-copy-info="svg">copiar</button>
         </div>
         <div class="dock__info-pane" data-info-pane="png" hidden>
           <div class="dock__info-png">
