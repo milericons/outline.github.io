@@ -1,6 +1,6 @@
 # Milericons
 
-Milericons es una biblioteca de iconos SVG. La interfaz principal está en blanco mientras se prepara un nuevo diseño; los iconos fuente y la distribución por CDN se mantienen.
+Milericons es una biblioteca de iconos SVG con una galería para explorar, buscar y copiar iconos.
 
 ## CDN
 
@@ -17,7 +17,7 @@ Luego usa un elemento con la clase `miller-icon` y el nombre del icono en `data-
 <span class="miller-icon" data-icon="arrow_right"></span>
 ```
 
-Los nombres usan el nombre del archivo SVG sin la extensión. Puedes consultar los iconos disponibles en [`src/svg/`](./src/svg/).
+Los nombres corresponden al nombre del archivo SVG sin la extensión, por ejemplo `home` o `arrow_left`. Puedes consultar los iconos disponibles en [`src/svg/`](./src/svg/).
 
 ### Animaciones
 
@@ -66,7 +66,7 @@ Desde la raíz del repositorio, inicia el servidor:
 node server.js
 ```
 
-Abre <http://127.0.0.1:3000>. La página principal se mantiene intencionalmente vacía durante el rediseño. Los ejemplos de uso del CDN están en [`examples/`](./examples/).
+Abre <http://127.0.0.1:3000> para usar la galería. Los ejemplos de uso del CDN están en [`examples/`](./examples/).
 
 El servidor genera `public/miller-icons.js` a partir de los SVG de `src/svg` cuando se solicita el bundle. Para agregar un icono, incorpora su archivo `.svg` en ese directorio.
 
