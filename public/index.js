@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const label = document.createElement('span');
     label.className = 'icon-cell__name';
-    label.textContent = name.replaceAll('_', '_\u200B');
+    label.textContent = name.replaceAll('_', ' ');
 
     cell.append(icon, label);
     fragment.append(cell);
@@ -109,7 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeSearch() {
     searchPanel.hidden = true;
     searchInput.value = '';
-    searchClear.hidden = true;
+    searchClear.setAttribute('aria-label', 'Cerrar búsqueda');
+    searchClear.title = 'Cerrar búsqueda';
     filterGrid('');
   }
 
@@ -122,9 +123,15 @@ document.addEventListener('DOMContentLoaded', () => {
   searchPanel.addEventListener('click', (event) => event.stopPropagation());
   searchInput.addEventListener('input', () => {
     filterGrid(searchInput.value);
-    searchClear.hidden = searchInput.value.length === 0;
+    const hasQuery = searchInput.value.length > 0;
+    searchClear.setAttribute('aria-label', hasQuery ? 'Limpiar búsqueda' : 'Cerrar búsqueda');
+    searchClear.title = hasQuery ? 'Limpiar búsqueda' : 'Cerrar búsqueda';
   });
   searchClear.addEventListener('click', () => {
+    if (searchInput.value.length === 0) {
+      closeSearch();
+      return;
+    }
     searchInput.value = '';
     searchInput.dispatchEvent(new Event('input', { bubbles: true }));
     searchInput.focus();
