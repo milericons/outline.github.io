@@ -70,6 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const favoritesEmpty = document.querySelector('[data-favorites-empty]');
   const favoritesClose = document.querySelector('[data-favorites-close]');
 
+  function updateFavoritesToggle() {
+    favoriteToggle.classList.toggle('has-favorites', favorites.size > 0);
+  }
+
+  updateFavoritesToggle();
+
   function renderFavorites() {
     const names = MillerIcons.names.filter((name) => favorites.has(name));
     favoritesCount.textContent = `${names.length} ${names.length === 1 ? 'icono guardado' : 'iconos guardados'}`;
@@ -99,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (favorites.has(name)) favorites.delete(name);
     else favorites.add(name);
     saveFavorites();
+    updateFavoritesToggle();
     document.querySelectorAll('.icon-cell').forEach((cell) => {
       if (cell.dataset.name !== name) return;
       updateFavoriteButton(cell, favorites.has(name));

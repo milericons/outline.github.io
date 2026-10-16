@@ -497,11 +497,11 @@ body.has-modal {
   cursor: pointer;
 }
 
-.dock .dock__favorite-toggle .miller-icon {
+.dock .dock__favorite-toggle.has-favorites .miller-icon {
   color: #d99a00;
 }
 
-.dock__favorite-toggle:hover .miller-icon {
+.dock__favorite-toggle.has-favorites:hover .miller-icon {
   color: #bf8500;
   background: var(--hover-bg);
 }
