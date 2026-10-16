@@ -236,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openInfo(name) {
-    if (!searchPanel.hidden) closeSearch();
     const label = name.replaceAll('_', '_\u200B');
     const animatable = hasAnimation(name);
     infoName.textContent = label;
