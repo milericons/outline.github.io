@@ -632,7 +632,7 @@ body.has-modal {
   margin: 0 1rem;
   padding: 0.75rem;
   overflow: auto;
-  background: var(--code-bg);
+  background: var(--dock-bg);
   border: 1px solid var(--code-border);
   border-radius: 0.75rem;
 }
@@ -711,7 +711,7 @@ body.has-modal {
   padding: 0.75rem;
   overflow: auto;
   color: var(--text);
-  background: var(--code-bg);
+  background: var(--dock-bg);
   border: 1px solid var(--code-border);
   border-radius: 0.625rem;
   font-size: 0.625rem;
