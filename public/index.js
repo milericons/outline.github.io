@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const FAVORITES_KEY = 'milericons-favorites';
   const availableIcons = new Set(MillerIcons.names);
   let favorites = new Set();
+  const packageIcons = new Set();
   try {
     const storedFavorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     if (Array.isArray(storedFavorites)) {
@@ -15,9 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const button = cell.querySelector('.icon-cell__favorite');
     const label = isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos';
     cell.classList.toggle('is-favorite', isFavorite);
-    button.setAttribute('aria-label', `${label}: ${cell.dataset.name.replaceAll('_', ' ')}`);
+    button.setAttribute('aria-label', label);
     button.setAttribute('aria-pressed', String(isFavorite));
-    button.title = label;
+    button.querySelector('.icon-cell__action-label').textContent = label;
+  }
+
+  function updatePackageButton(cell, isSelected) {
+    const button = cell.querySelector('.icon-cell__package');
+    const label = isSelected ? 'Quitar del paquete' : 'Añadir al paquete';
+    cell.classList.toggle('is-in-package', isSelected);
+    button.setAttribute('aria-label', label);
+    button.setAttribute('aria-pressed', String(isSelected));
+    button.querySelector('.icon-cell__action-label').textContent = label;
   }
 
   function createIconCell(name, extraClass = '') {
@@ -36,9 +46,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const favoriteButton = document.createElement('button');
     favoriteButton.type = 'button';
     favoriteButton.className = 'icon-cell__favorite';
-    favoriteButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"></path></svg>';
-    cell.append(icon, label, favoriteButton);
+    favoriteButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"></path></svg><span class="icon-cell__action-label"></span>';
+    const packageButton = document.createElement('button');
+    packageButton.type = 'button';
+    packageButton.className = 'icon-cell__package';
+    packageButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg><span class="icon-cell__action-label"></span>';
+    const actions = document.createElement('div');
+    actions.className = 'icon-cell__actions';
+    const actionsToggle = document.createElement('button');
+    actionsToggle.type = 'button';
+    actionsToggle.className = 'icon-cell__actions-toggle';
+    actionsToggle.setAttribute('aria-label', `Acciones para ${name.replaceAll('_', ' ')}`);
+    actionsToggle.setAttribute('aria-haspopup', 'true');
+    actionsToggle.setAttribute('aria-expanded', 'false');
+    actionsToggle.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>';
+    const actionsMenu = document.createElement('div');
+    actionsMenu.className = 'icon-cell__actions-menu';
+    actionsMenu.hidden = true;
+    actionsMenu.append(favoriteButton, packageButton);
+    actions.append(actionsToggle, actionsMenu);
+    cell.append(icon, label, actions);
     updateFavoriteButton(cell, favorites.has(name));
+    updatePackageButton(cell, packageIcons.has(name));
     return cell;
   }
 
@@ -69,6 +98,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const favoritesCount = document.querySelector('[data-favorites-count]');
   const favoritesEmpty = document.querySelector('[data-favorites-empty]');
   const favoritesClose = document.querySelector('[data-favorites-close]');
+  const packageToggle = document.querySelector('[data-package-toggle]');
+  const packageModal = document.querySelector('[data-package-modal]');
+  const packageClose = document.querySelector('[data-package-close]');
+  const packageColor = document.querySelector('[data-package-color]');
+  const packageSize = document.querySelector('[data-package-size]');
+  const packageCount = document.querySelector('[data-package-count]');
+  const packagePreview = document.querySelector('[data-package-preview]');
+  const packageOutput = document.querySelector('[data-package-output]');
+  const packageNote = document.querySelector('[data-package-note]');
+  const packageCopy = document.querySelector('[data-package-copy]');
+  const packageDownloadSprite = document.querySelector('[data-package-download-sprite]');
+  const packageDownloadSvgs = document.querySelector('[data-package-download-svgs]');
+  const packageFormats = document.querySelectorAll('[data-package-format]');
+  let packageFormat = 'html';
+  let packageRenderVersion = 0;
 
   function updateFavoritesToggle() {
     favoriteToggle.classList.toggle('has-favorites', favorites.size > 0);
@@ -129,6 +173,150 @@ document.addEventListener('DOMContentLoaded', () => {
     favoriteToggle.focus();
   }
 
+  function packageIconNames() {
+    return MillerIcons.names.filter((name) => packageIcons.has(name));
+  }
+
+  function renderPackagePreview() {
+    const names = packageIconNames();
+    packageCount.textContent = `${names.length} ${names.length === 1 ? 'icono seleccionado' : 'iconos seleccionados'}`;
+    packagePreview.replaceChildren();
+    if (names.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'package-builder__empty';
+      empty.textContent = 'Añade iconos desde la cuadrícula principal para preparar tu paquete.';
+      packagePreview.append(empty);
+      return;
+    }
+    names.forEach((name) => {
+      const item = document.createElement('div');
+      item.className = 'package-builder__preview-icon';
+      const icon = document.createElement('span');
+      icon.className = 'miller-icon';
+      icon.dataset.icon = name;
+      icon.style.width = `${packageSize.value}px`;
+      icon.style.height = `${packageSize.value}px`;
+      icon.style.color = packageColor.value;
+      const label = document.createElement('span');
+      label.textContent = name.replaceAll('_', ' ');
+      item.append(icon, label);
+      packagePreview.append(item);
+    });
+    MillerIcons.scan(packagePreview);
+  }
+
+  async function createStyledSvg(name) {
+    const markup = await MillerIcons.getSvgMarkup(name);
+    const parsed = new DOMParser().parseFromString(markup, 'image/svg+xml');
+    const svg = parsed.documentElement;
+    if (svg.localName !== 'svg' || parsed.querySelector('parsererror')) {
+      throw new Error(`El icono "${name}" no contiene un SVG válido`);
+    }
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('width', packageSize.value);
+    svg.setAttribute('height', packageSize.value);
+    svg.setAttribute('color', packageColor.value);
+    return new XMLSerializer().serializeToString(svg);
+  }
+
+  async function packageExportContent(format, names) {
+    if (names.length === 0) return '';
+    const svgs = await Promise.all(names.map(async (name) => ({
+      name,
+      markup: await createStyledSvg(name),
+    })));
+    if (format === 'html') {
+      return svgs.map(({ name, markup }) => `<!-- ${name} -->\n${markup}`).join('\n\n');
+    }
+    const symbols = svgs.map(({ name, markup }) => {
+      const parsed = new DOMParser().parseFromString(markup, 'image/svg+xml');
+      const sourceSvg = parsed.documentElement;
+      const symbol = document.createElementNS('http://www.w3.org/2000/svg', 'symbol');
+      symbol.setAttribute('id', `milericons-${name}`);
+      symbol.setAttribute('viewBox', sourceSvg.getAttribute('viewBox') || '0 0 24 24');
+      symbol.setAttribute('fill', 'currentColor');
+      Array.from(sourceSvg.childNodes).forEach((node) => symbol.append(node.cloneNode(true)));
+      return new XMLSerializer().serializeToString(symbol);
+    }).join('\n');
+    return `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">\n${symbols}\n</svg>\n\n<!-- Uso: <svg width="${packageSize.value}" height="${packageSize.value}" color="${packageColor.value}"><use href="milericons-sprite.svg#milericons-${names[0]}"></use></svg> -->`;
+  }
+
+  async function updatePackageExport() {
+    const version = ++packageRenderVersion;
+    const names = packageIconNames();
+    const hasSelection = names.length > 0;
+    packageCopy.disabled = !hasSelection;
+    packageDownloadSprite.disabled = !hasSelection;
+    packageDownloadSvgs.disabled = !hasSelection;
+    packageNote.textContent = hasSelection
+      ? 'Puedes copiar el código, descargar un sprite con todos los iconos o bajar los SVG individuales.'
+      : 'Elige iconos para habilitar la exportación.';
+    if (!hasSelection) {
+      packageOutput.textContent = '';
+      return;
+    }
+    packageOutput.textContent = 'Generando código…';
+    try {
+      const content = await packageExportContent(packageFormat, names);
+      if (version === packageRenderVersion) packageOutput.textContent = content;
+    } catch (error) {
+      console.error('No se pudo generar el código del paquete:', error);
+      if (version === packageRenderVersion) {
+        packageOutput.textContent = '';
+        packageNote.textContent = 'No se pudo generar el paquete. Inténtalo de nuevo.';
+      }
+    }
+  }
+
+  function renderPackageSelection() {
+    document.querySelectorAll('.icon-cell').forEach((cell) => {
+      updatePackageButton(cell, packageIcons.has(cell.dataset.name));
+    });
+    renderPackagePreview();
+    updatePackageExport();
+  }
+
+  function togglePackageIcon(name) {
+    if (!availableIcons.has(name)) return;
+    if (packageIcons.has(name)) packageIcons.delete(name);
+    else packageIcons.add(name);
+    renderPackageSelection();
+  }
+
+  function openPackageBuilder() {
+    closeInfo();
+    packageModal.hidden = false;
+    document.body.classList.add('has-modal');
+    renderPackageSelection();
+    packageClose.focus();
+  }
+
+  function closePackageBuilder() {
+    packageModal.hidden = true;
+    document.body.classList.remove('has-modal');
+    packageToggle.focus();
+  }
+
+  function downloadText(filename, content, mimeType) {
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function closeIconActions(except = null) {
+    document.querySelectorAll('.icon-cell__actions.is-open').forEach((actions) => {
+      if (actions === except) return;
+      actions.classList.remove('is-open');
+      actions.querySelector('.icon-cell__actions-toggle').setAttribute('aria-expanded', 'false');
+      actions.querySelector('.icon-cell__actions-menu').hidden = true;
+    });
+  }
+
   function bindIconCell(cell, onSelect) {
     cell.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -140,9 +328,29 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!infoPanel.hidden && cell.classList.contains('is-selected')) closeInfo();
       else openInfo(name);
     });
+    const actions = cell.querySelector('.icon-cell__actions');
+    const actionsToggle = actions.querySelector('.icon-cell__actions-toggle');
+    const actionsMenu = actions.querySelector('.icon-cell__actions-menu');
+    actionsToggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const willOpen = !actions.classList.contains('is-open');
+      closeIconActions(actions);
+      actions.classList.toggle('is-open', willOpen);
+      actionsToggle.setAttribute('aria-expanded', String(willOpen));
+      actionsMenu.hidden = !willOpen;
+      if (willOpen) actionsMenu.querySelector('button').focus();
+    });
     cell.querySelector('.icon-cell__favorite').addEventListener('click', (event) => {
       event.stopPropagation();
       toggleFavorite(cell.dataset.name);
+      closeIconActions();
+      if (favoritesModal.hidden) actionsToggle.focus();
+    });
+    cell.querySelector('.icon-cell__package').addEventListener('click', (event) => {
+      event.stopPropagation();
+      togglePackageIcon(cell.dataset.name);
+      closeIconActions();
+      actionsToggle.focus();
     });
   }
 
@@ -150,6 +358,87 @@ document.addEventListener('DOMContentLoaded', () => {
   favoriteToggle.addEventListener('click', (event) => {
     event.stopPropagation();
     openFavorites();
+  });
+  packageToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    openPackageBuilder();
+  });
+  packageClose.addEventListener('click', (event) => {
+    event.stopPropagation();
+    closePackageBuilder();
+  });
+  packageModal.addEventListener('click', (event) => {
+    if (event.target === packageModal) {
+      event.stopPropagation();
+      closePackageBuilder();
+    }
+  });
+  packageModal.querySelector('.package-builder__dialog').addEventListener('click', (event) => event.stopPropagation());
+  packageModal.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+    const focusable = [...packageModal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled])')]
+      .filter((element) => !element.closest('[hidden]'));
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+  packageColor.addEventListener('input', () => {
+    renderPackagePreview();
+    updatePackageExport();
+  });
+  packageSize.addEventListener('change', () => {
+    renderPackagePreview();
+    updatePackageExport();
+  });
+  packageFormats.forEach((button) => {
+    button.addEventListener('click', () => {
+      packageFormat = button.dataset.packageFormat;
+      packageFormats.forEach((formatButton) => {
+        const isActive = formatButton === button;
+        formatButton.classList.toggle('is-active', isActive);
+        formatButton.setAttribute('aria-selected', String(isActive));
+      });
+      updatePackageExport();
+    });
+  });
+  packageCopy.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(packageOutput.textContent);
+      packageNote.textContent = 'Código copiado al portapapeles.';
+    } catch (error) {
+      console.error('No se pudo copiar el código del paquete:', error);
+      packageNote.textContent = 'No se pudo copiar. Revisa los permisos del navegador.';
+    }
+  });
+  packageDownloadSprite.addEventListener('click', async () => {
+    try {
+      const content = await packageExportContent('sprite', packageIconNames());
+      downloadText('milericons-sprite.svg', content, 'image/svg+xml');
+    } catch (error) {
+      console.error('No se pudo descargar el sprite:', error);
+      packageNote.textContent = 'No se pudo descargar el sprite.';
+    }
+  });
+  packageDownloadSvgs.addEventListener('click', async () => {
+    try {
+      const files = await Promise.all(packageIconNames().map(async (name) => ({
+        name,
+        markup: await createStyledSvg(name),
+      })));
+      files.forEach(({ name, markup }) => downloadText(`${name}.svg`, markup, 'image/svg+xml'));
+      packageNote.textContent = files.length > 1
+        ? `Descargando ${files.length} SVG individuales. El navegador puede pedir permiso para varias descargas.`
+        : 'SVG descargado.';
+    } catch (error) {
+      console.error('No se pudieron descargar los SVG:', error);
+      packageNote.textContent = 'No se pudieron descargar los SVG individuales.';
+    }
   });
   favoritesClose.addEventListener('click', (event) => {
     event.stopPropagation();
@@ -164,7 +453,8 @@ document.addEventListener('DOMContentLoaded', () => {
   favoritesModal.querySelector('.favorites-modal__dialog').addEventListener('click', (event) => event.stopPropagation());
   favoritesModal.addEventListener('keydown', (event) => {
     if (event.key !== 'Tab') return;
-    const focusable = [...favoritesModal.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+    const focusable = [...favoritesModal.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+      .filter((element) => !element.closest('[hidden]'));
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
     if (event.shiftKey && document.activeElement === first) {
@@ -469,6 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
+    if (!target.closest('.icon-cell__actions')) closeIconActions();
     if (!target.closest('.dock__theme-wrap')) closeTheme();
     if (!target.closest('.dock__size-wrap')) sizeMenu.hidden = true;
   }, true);
@@ -482,11 +773,26 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();
+      if (!packageModal.hidden) {
+        packageClose.focus();
+        return;
+      }
       if (searchPanel.hidden) openSearch();
       else searchInput.focus();
       return;
     }
     if (event.key === 'Escape') {
+      const openActions = document.querySelector('.icon-cell__actions.is-open');
+      if (openActions) {
+        const trigger = openActions.querySelector('.icon-cell__actions-toggle');
+        closeIconActions();
+        trigger.focus();
+        return;
+      }
+      if (!packageModal.hidden) {
+        closePackageBuilder();
+        return;
+      }
       if (!favoritesModal.hidden) {
         closeFavorites();
         return;

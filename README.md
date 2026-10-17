@@ -70,6 +70,10 @@ Abre <http://127.0.0.1:3000> para usar la galería. Los ejemplos de uso del CDN 
 
 El servidor genera `public/miller-icons.js` a partir de los SVG de `src/svg` cuando se solicita el bundle. Para agregar un icono, incorpora su archivo `.svg` en ese directorio.
 
+## Galería
+
+La galería permite buscar iconos, guardarlos en favoritos y crear paquetes personalizados. Añade o quita iconos desde el botón `+` de cada tarjeta y abre el constructor desde el dock para previsualizar la selección, elegir color y tamaño, copiar snippets HTML, descargar un sprite SVG o exportar los SVG individuales.
+
 ## Estructura del proyecto
 
 - `src/svg/`: archivos SVG fuente.

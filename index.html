@@ -82,6 +82,9 @@
         <button type="button" class="dock__favorite-toggle" data-favorites-toggle aria-label="Abrir favoritos" title="Favoritos">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"></path></svg>
         </button>
+        <button type="button" class="dock__package-toggle" data-package-toggle aria-label="Crear paquete de iconos" title="Crear paquete">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        </button>
         <span class="miller-icon" data-icon="search" data-search-toggle></span>
         <div class="dock__theme-wrap">
           <span class="miller-icon" data-icon="computer" data-theme-toggle title="Tema"></span>
@@ -101,6 +104,60 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="package-builder" data-package-modal hidden>
+      <section class="package-builder__dialog" role="dialog" aria-modal="true" aria-labelledby="package-title">
+        <header class="package-builder__header">
+          <div>
+            <p class="favorites-modal__eyebrow">CREADOR DE PAQUETES</p>
+            <h2 class="favorites-modal__title" id="package-title">Constructor de iconos</h2>
+            <p class="package-builder__description">Añade iconos desde la cuadrícula principal y luego personaliza y exporta tu selección.</p>
+          </div>
+          <button type="button" class="favorites-modal__close" data-package-close aria-label="Cerrar constructor">×</button>
+        </header>
+        <div class="package-builder__toolbar">
+          <label class="package-builder__color">
+            <span>Color</span>
+            <input type="color" value="#1f2328" data-package-color aria-label="Color de los iconos" />
+          </label>
+          <label class="package-builder__size">
+            <span>Tamaño</span>
+            <select data-package-size aria-label="Tamaño de los iconos">
+              <option value="16">16 px</option>
+              <option value="20">20 px</option>
+              <option value="24" selected>24 px</option>
+              <option value="32">32 px</option>
+              <option value="48">48 px</option>
+              <option value="64">64 px</option>
+            </select>
+          </label>
+          <p class="package-builder__selection-hint">Selecciona o quita iconos con el botón + de cada tarjeta en la cuadrícula.</p>
+        </div>
+        <div class="package-builder__workspace">
+          <section class="package-builder__preview-panel" aria-label="Vista previa y exportación">
+            <div class="package-builder__section-head">
+              <h3>Vista previa</h3>
+              <span data-package-count aria-live="polite">0 seleccionados</span>
+            </div>
+            <div class="package-builder__preview" data-package-preview>
+                <p class="package-builder__empty">Añade iconos desde la cuadrícula principal para preparar tu paquete.</p>
+            </div>
+            <div class="package-builder__export">
+              <div class="package-builder__formats" role="tablist" aria-label="Formato de exportación">
+                <button type="button" class="is-active" data-package-format="html" role="tab" aria-selected="true">HTML</button>
+                <button type="button" data-package-format="sprite" role="tab" aria-selected="false">Sprite SVG</button>
+              </div>
+              <pre class="package-builder__code"><code data-package-output></code></pre>
+              <div class="package-builder__actions">
+                <button type="button" class="dock__copy" data-package-copy disabled>Copiar código</button>
+                <button type="button" class="dock__copy" data-package-download-sprite disabled>Descargar sprite</button>
+                <button type="button" class="dock__copy dock__copy--primary" data-package-download-svgs disabled>Descargar SVGs</button>
+              </div>
+              <p class="package-builder__note" data-package-note>Elige iconos para habilitar la exportación.</p>
+            </div>
+          </section>
+        </div>
+      </section>
     </div>
     <div class="favorites-modal" data-favorites-modal hidden>
       <section class="favorites-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="favorites-title">
