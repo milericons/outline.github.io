@@ -489,18 +489,6 @@ body.has-modal {
   border-bottom: 1px solid var(--dock-border);
 }
 
-.package-builder__size select {
-  width: 100%;
-  min-height: 2.25rem;
-  padding: 0.4rem 0.625rem;
-  font: inherit;
-  font-size: 0.75rem;
-  color: var(--text);
-  background: var(--btn-bg);
-  border: 1px solid var(--btn-border);
-  border-radius: 0.5rem;
-}
-
 .package-builder__size,
 .package-builder__color {
   display: flex;
@@ -510,8 +498,78 @@ body.has-modal {
   font-size: 0.6875rem;
 }
 
-.package-builder__size select {
-  width: auto;
+.package-builder__size-wrap {
+  position: relative;
+}
+
+.package-builder__size-toggle {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.625rem;
+  color: var(--text);
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  border-radius: 0.5rem;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.package-builder__size-toggle svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  transition: transform 160ms ease;
+}
+
+.package-builder__size-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.package-builder__size-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  display: grid;
+  min-width: 100%;
+  gap: 0.125rem;
+  padding: 0.3rem;
+  background: var(--dock-bg);
+  border: 1px solid var(--dock-border);
+  border-radius: 0.6rem;
+  box-shadow: 0 0.75rem 1.75rem rgb(0 0 0 / 18%);
+}
+
+.package-builder__size-menu[hidden] {
+  display: none;
+}
+
+.package-builder__size-menu button {
+  padding: 0.4rem 0.55rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 0.35rem;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.package-builder__size-menu button:hover,
+.package-builder__size-menu button:focus-visible,
+.package-builder__size-menu button.is-active {
+  color: var(--text);
+  background: var(--btn-bg);
 }
 
 .package-builder__color input {

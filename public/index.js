@@ -102,7 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const packageModal = document.querySelector('[data-package-modal]');
   const packageClose = document.querySelector('[data-package-close]');
   const packageColor = document.querySelector('[data-package-color]');
-  const packageSize = document.querySelector('[data-package-size]');
+  const packageSizeToggle = document.querySelector('[data-package-size-toggle]');
+  const packageSizeLabel = document.querySelector('[data-package-size-label]');
+  const packageSizeMenu = document.querySelector('[data-package-size-menu]');
+  const packageSizeOptions = document.querySelectorAll('[data-package-size-option]');
+  let packageSize = '24';
   const packageCount = document.querySelector('[data-package-count]');
   const packagePreview = document.querySelector('[data-package-preview]');
   const packageOutput = document.querySelector('[data-package-output]');
@@ -194,8 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const icon = document.createElement('span');
       icon.className = 'miller-icon';
       icon.dataset.icon = name;
-      icon.style.width = `${packageSize.value}px`;
-      icon.style.height = `${packageSize.value}px`;
+      icon.style.width = `${packageSize}px`;
+      icon.style.height = `${packageSize}px`;
       icon.style.color = packageColor.value;
       const label = document.createElement('span');
       label.textContent = name.replaceAll('_', ' ');
@@ -213,8 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
       throw new Error(`El icono "${name}" no contiene un SVG válido`);
     }
     svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    svg.setAttribute('width', packageSize.value);
-    svg.setAttribute('height', packageSize.value);
+    svg.setAttribute('width', packageSize);
+    svg.setAttribute('height', packageSize);
     svg.setAttribute('color', packageColor.value);
     return new XMLSerializer().serializeToString(svg);
   }
@@ -238,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Array.from(sourceSvg.childNodes).forEach((node) => symbol.append(node.cloneNode(true)));
       return new XMLSerializer().serializeToString(symbol);
     }).join('\n');
-    return `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">\n${symbols}\n</svg>\n\n<!-- Uso: <svg width="${packageSize.value}" height="${packageSize.value}" color="${packageColor.value}"><use href="milericons-sprite.svg#milericons-${names[0]}"></use></svg> -->`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true">\n${symbols}\n</svg>\n\n<!-- Uso: <svg width="${packageSize}" height="${packageSize}" color="${packageColor.value}"><use href="milericons-sprite.svg#milericons-${names[0]}"></use></svg> -->`;
   }
 
   async function updatePackageExport() {
@@ -392,9 +396,27 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPackagePreview();
     updatePackageExport();
   });
-  packageSize.addEventListener('change', () => {
-    renderPackagePreview();
-    updatePackageExport();
+  packageSizeToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    packageSizeMenu.hidden = !packageSizeMenu.hidden;
+    packageSizeToggle.setAttribute('aria-expanded', String(!packageSizeMenu.hidden));
+  });
+  packageSizeMenu.addEventListener('click', (event) => event.stopPropagation());
+  packageSizeOptions.forEach((option) => {
+    option.addEventListener('click', () => {
+      packageSize = option.dataset.packageSizeOption;
+      packageSizeLabel.textContent = `${packageSize} px`;
+      packageSizeToggle.setAttribute('aria-label', `Tamaño de los iconos: ${packageSize} px`);
+      packageSizeOptions.forEach((sizeOption) => {
+        sizeOption.setAttribute('aria-checked', String(sizeOption === option));
+        sizeOption.classList.toggle('is-active', sizeOption === option);
+      });
+      packageSizeMenu.hidden = true;
+      packageSizeToggle.setAttribute('aria-expanded', 'false');
+      packageSizeToggle.focus();
+      renderPackagePreview();
+      updatePackageExport();
+    });
   });
   packageFormats.forEach((button) => {
     button.addEventListener('click', () => {
@@ -760,6 +782,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const target = event.target;
     if (!(target instanceof Element)) return;
     if (!target.closest('.icon-cell__actions')) closeIconActions();
+    if (!target.closest('.package-builder__size-wrap')) {
+      packageSizeMenu.hidden = true;
+      packageSizeToggle.setAttribute('aria-expanded', 'false');
+    }
     if (!target.closest('.dock__theme-wrap')) closeTheme();
     if (!target.closest('.dock__size-wrap')) sizeMenu.hidden = true;
   }, true);
@@ -782,6 +808,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     if (event.key === 'Escape') {
+      if (!packageSizeMenu.hidden) {
+        packageSizeMenu.hidden = true;
+        packageSizeToggle.setAttribute('aria-expanded', 'false');
+        packageSizeToggle.focus();
+        return;
+      }
       const openActions = document.querySelector('.icon-cell__actions.is-open');
       if (openActions) {
         const trigger = openActions.querySelector('.icon-cell__actions-toggle');

@@ -120,17 +120,23 @@
             <span>Color</span>
             <input type="color" value="#1f2328" data-package-color aria-label="Color de los iconos" />
           </label>
-          <label class="package-builder__size">
+          <div class="package-builder__size">
             <span>Tamaño</span>
-            <select data-package-size aria-label="Tamaño de los iconos">
-              <option value="16">16 px</option>
-              <option value="20">20 px</option>
-              <option value="24" selected>24 px</option>
-              <option value="32">32 px</option>
-              <option value="48">48 px</option>
-              <option value="64">64 px</option>
-            </select>
-          </label>
+            <div class="package-builder__size-wrap">
+              <button type="button" class="package-builder__size-toggle" data-package-size-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Tamaño de los iconos: 24 px">
+                <span data-package-size-label>24 px</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+              </button>
+              <div class="package-builder__size-menu" data-package-size-menu role="menu" aria-label="Tamaño de los iconos" hidden>
+                <button type="button" role="menuitemradio" aria-checked="false" data-package-size-option="16">16 px</button>
+                <button type="button" role="menuitemradio" aria-checked="false" data-package-size-option="20">20 px</button>
+                <button type="button" role="menuitemradio" aria-checked="true" class="is-active" data-package-size-option="24">24 px</button>
+                <button type="button" role="menuitemradio" aria-checked="false" data-package-size-option="32">32 px</button>
+                <button type="button" role="menuitemradio" aria-checked="false" data-package-size-option="48">48 px</button>
+                <button type="button" role="menuitemradio" aria-checked="false" data-package-size-option="64">64 px</button>
+              </div>
+            </div>
+          </div>
           <p class="package-builder__selection-hint">Selecciona o quita iconos con el botón + de cada tarjeta en la cuadrícula.</p>
         </div>
         <div class="package-builder__workspace">
