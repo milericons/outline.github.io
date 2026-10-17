@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     packageDownloadSprite.disabled = !hasSelection;
     packageDownloadSvgs.disabled = !hasSelection;
     packageNote.textContent = hasSelection
-      ? 'Puedes copiar el código, descargar un sprite con todos los iconos o bajar los SVG individuales.'
+      ? 'Puedes copiar el código, descargar un sprite o un ZIP con los SVG individuales.'
       : 'Elige iconos para habilitar la exportación.';
     if (!hasSelection) {
       packageOutput.textContent = '';
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     packageOutput.textContent = 'Generando código…';
     try {
       const content = await packageExportContent(packageFormat, names);
-      if (version === packageRenderVersion) packageOutput.textContent = content;
+      if (version === packageRenderVersion) packageOutput.innerHTML = highlightPackageCode(content);
     } catch (error) {
       console.error('No se pudo generar el código del paquete:', error);
       if (version === packageRenderVersion) {
@@ -303,14 +303,99 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function downloadText(filename, content, mimeType) {
+    downloadBlob(filename, new Blob([content], { type: mimeType }));
+  }
+
+  function downloadBlob(filename, blob) {
     const link = document.createElement('a');
-    const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
+    const url = URL.createObjectURL(blob);
     link.href = url;
     link.download = filename;
     document.body.append(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function createZip(files) {
+    const encoder = new TextEncoder();
+    const crcTable = new Uint32Array(256);
+    for (let index = 0; index < crcTable.length; index += 1) {
+      let value = index;
+      for (let bit = 0; bit < 8; bit += 1) {
+        value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+      }
+      crcTable[index] = value >>> 0;
+    }
+
+    function crc32(bytes) {
+      let crc = 0xffffffff;
+      bytes.forEach((byte) => {
+        crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+      });
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function writeHeader(length, values) {
+      const header = new Uint8Array(length);
+      const view = new DataView(header.buffer);
+      values.forEach(([offset, value, size]) => {
+        if (size === 2) view.setUint16(offset, value, true);
+        else view.setUint32(offset, value, true);
+      });
+      return header;
+    }
+
+    let canDeflate = typeof CompressionStream === 'function';
+    if (canDeflate) {
+      try {
+        new CompressionStream('deflate-raw');
+      } catch {
+        canDeflate = false;
+      }
+    }
+
+    const localRecords = [];
+    const centralRecords = [];
+    let localOffset = 0;
+    const date = 0x21;
+
+    for (const file of files) {
+      const filename = encoder.encode(file.name);
+      const source = encoder.encode(file.content);
+      let content = source;
+      let method = 0;
+      if (canDeflate) {
+        const stream = new Blob([source]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+        content = new Uint8Array(await new Response(stream).arrayBuffer());
+        method = 8;
+      }
+      const checksum = crc32(source);
+      const localHeader = writeHeader(30 + filename.length, [
+        [0, 0x04034b50, 4], [4, 20, 2], [6, 0x0800, 2], [8, method, 2],
+        [10, 0, 2], [12, date, 2], [14, checksum, 4], [18, content.length, 4],
+        [22, source.length, 4], [26, filename.length, 2], [28, 0, 2],
+      ]);
+      localHeader.set(filename, 30);
+      localRecords.push(localHeader, content);
+
+      const centralHeader = writeHeader(46 + filename.length, [
+        [0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0x0800, 2], [10, method, 2],
+        [12, 0, 2], [14, date, 2], [16, checksum, 4], [20, content.length, 4],
+        [24, source.length, 4], [28, filename.length, 2], [30, 0, 2], [32, 0, 2],
+        [34, 0, 2], [36, 0, 4], [42, localOffset, 4],
+      ]);
+      centralHeader.set(filename, 46);
+      centralRecords.push(centralHeader);
+      localOffset += localHeader.length + content.length;
+    }
+
+    const centralSize = centralRecords.reduce((size, record) => size + record.length, 0);
+    const endRecord = writeHeader(22, [
+      [0, 0x06054b50, 4], [4, 0, 2], [6, 0, 2], [8, files.length, 2],
+      [10, files.length, 2], [12, centralSize, 4], [16, localOffset, 4], [20, 0, 2],
+    ]);
+    return new Blob([...localRecords, ...centralRecords, endRecord], { type: 'application/zip' });
   }
 
   function closeIconActions(except = null) {
@@ -451,16 +536,15 @@ document.addEventListener('DOMContentLoaded', () => {
   packageDownloadSvgs.addEventListener('click', async () => {
     try {
       const files = await Promise.all(packageIconNames().map(async (name) => ({
-        name,
-        markup: await createStyledSvg(name),
+        name: `${name}.svg`,
+        content: await createStyledSvg(name),
       })));
-      files.forEach(({ name, markup }) => downloadText(`${name}.svg`, markup, 'image/svg+xml'));
-      packageNote.textContent = files.length > 1
-        ? `Descargando ${files.length} SVG individuales. El navegador puede pedir permiso para varias descargas.`
-        : 'SVG descargado.';
+      const archive = await createZip(files);
+      downloadBlob('milericons-svg.zip', archive);
+      packageNote.textContent = `ZIP descargado con ${files.length} ${files.length === 1 ? 'SVG' : 'SVGs'}.`;
     } catch (error) {
-      console.error('No se pudieron descargar los SVG:', error);
-      packageNote.textContent = 'No se pudieron descargar los SVG individuales.';
+      console.error('No se pudo crear el ZIP de SVG:', error);
+      packageNote.textContent = 'No se pudo crear el ZIP de SVG.';
     }
   });
   favoritesClose.addEventListener('click', (event) => {
@@ -679,6 +763,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     out += escapeHtml(markup.slice(last));
     return out;
+  }
+
+  function highlightPackageCode(markup) {
+    return markup.split(/(<!--[\s\S]*?-->)/g).map((part) => {
+      if (part.startsWith('<!--')) return `<span class="tok-comment">${escapeHtml(part)}</span>`;
+      return highlightSvg(part);
+    }).join('');
   }
 
   function setInfoTab(tab) {
