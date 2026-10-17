@@ -637,8 +637,9 @@ body.has-modal {
   border-radius: 0.75rem;
 }
 
-.package-builder__preview:has(.package-builder__empty) {
+.package-builder__preview.is-empty {
   display: grid;
+  grid-template: 1fr / 1fr;
   place-items: center;
 }
 

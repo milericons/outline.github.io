@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const names = packageIconNames();
     packageCount.textContent = `${names.length} ${names.length === 1 ? 'icono seleccionado' : 'iconos seleccionados'}`;
     packagePreview.replaceChildren();
+    packagePreview.classList.toggle('is-empty', names.length === 0);
     if (names.length === 0) {
       const empty = document.createElement('p');
       empty.className = 'package-builder__empty';
