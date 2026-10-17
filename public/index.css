@@ -14,7 +14,7 @@
   --dock-bg: #ffffff;
   --dock-border: rgba(17, 24, 39, 0.08);
   --divider: rgba(17, 24, 39, 0.1);
-  --code-bg: #eff7ff;
+  --code-bg: #f6f8fa;
   --code-border: rgba(17, 24, 39, 0.1);
   --tok-tag: #116329;
   --tok-attr: #953800;
@@ -637,6 +637,11 @@ body.has-modal {
   border-radius: 0.75rem;
 }
 
+.package-builder__preview:has(.package-builder__empty) {
+  display: grid;
+  place-items: center;
+}
+
 .package-builder__preview-icon {
   display: flex;
   flex-direction: column;
@@ -661,8 +666,7 @@ body.has-modal {
 }
 
 .package-builder__empty {
-  align-self: center;
-  margin: auto;
+  margin: 0;
   color: var(--text-dim);
   font-size: 0.6875rem;
   text-align: center;
