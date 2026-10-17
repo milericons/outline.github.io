@@ -72,7 +72,7 @@ El servidor genera `public/miller-icons.js` a partir de los SVG de `src/svg` cua
 
 ## Galería
 
-La galería permite buscar iconos, guardarlos en favoritos y crear paquetes personalizados. Añade o quita iconos desde el botón `+` de cada tarjeta y abre el constructor desde el dock para previsualizar la selección, elegir color y tamaño, copiar snippets HTML, descargar un sprite SVG o descargar los SVG individuales en un archivo ZIP.
+La galería permite buscar iconos, guardarlos en favoritos y crear paquetes personalizados. Añade o quita iconos desde el botón `+` de cada tarjeta y abre el constructor desde el dock para previsualizar la selección, elegir color y tamaño, copiar snippets HTML, descargar un sprite SVG o descargar los SVG individuales en un archivo ZIP. La selección del paquete se conserva en el navegador y el color inicial de los iconos se adapta al tema activo.
 
 ## Estructura del proyecto
 

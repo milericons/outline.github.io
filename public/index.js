@@ -1,8 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
   const FAVORITES_KEY = 'milericons-favorites';
+  const PACKAGE_ICONS_KEY = 'milericons-package-icons';
   const availableIcons = new Set(MillerIcons.names);
   let favorites = new Set();
-  const packageIcons = new Set();
+  let packageIcons = new Set();
   try {
     const storedFavorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     if (Array.isArray(storedFavorites)) {
@@ -10,6 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (error) {
     console.error('No se pudieron cargar los favoritos:', error);
+  }
+  try {
+    const storedPackageIcons = JSON.parse(localStorage.getItem(PACKAGE_ICONS_KEY) || '[]');
+    if (Array.isArray(storedPackageIcons)) {
+      packageIcons = new Set(storedPackageIcons.filter((name) => availableIcons.has(name)));
+    }
+  } catch (error) {
+    console.error('No se pudo cargar la selección del paquete:', error);
   }
 
   function updateFavoriteButton(cell, isFavorite) {
@@ -102,6 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const packageModal = document.querySelector('[data-package-modal]');
   const packageClose = document.querySelector('[data-package-close]');
   const packageColor = document.querySelector('[data-package-color]');
+  const packageThemeColors = { light: '#1f2328', dark: '#e6edf3' };
+  let packageColorCustomized = false;
+  packageColor.value = packageThemeColors[document.documentElement.dataset.theme] || packageThemeColors.light;
   const packageSizeToggle = document.querySelector('[data-package-size-toggle]');
   const packageSizeLabel = document.querySelector('[data-package-size-label]');
   const packageSizeMenu = document.querySelector('[data-package-size-menu]');
@@ -285,7 +297,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!availableIcons.has(name)) return;
     if (packageIcons.has(name)) packageIcons.delete(name);
     else packageIcons.add(name);
+    let saveError = false;
+    try {
+      localStorage.setItem(PACKAGE_ICONS_KEY, JSON.stringify([...packageIcons]));
+    } catch (error) {
+      console.error('No se pudo guardar la selección del paquete:', error);
+      saveError = true;
+    }
     renderPackageSelection();
+    if (saveError) {
+      packageNote.textContent = 'No se pudo guardar la selección del paquete en este dispositivo.';
+    }
   }
 
   function openPackageBuilder() {
@@ -479,6 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   packageColor.addEventListener('input', () => {
+    packageColorCustomized = true;
     renderPackagePreview();
     updatePackageExport();
   });
@@ -591,6 +614,13 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTheme = theme;
     const resolved = theme === 'system' ? (colorScheme.matches ? 'dark' : 'light') : theme;
     root.dataset.theme = resolved;
+    if (!packageColorCustomized) {
+      packageColor.value = packageThemeColors[resolved];
+      if (!packageModal.hidden) {
+        renderPackagePreview();
+        updatePackageExport();
+      }
+    }
     themeToggle.dataset.icon = THEME_ICONS[theme];
     MillerIcons.render(themeToggle);
     themeOptions.forEach((option) => {
